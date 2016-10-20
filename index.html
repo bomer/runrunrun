@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<!-- Meta tags for mobile -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	<link rel="shortcut icon" href="favicon.ico">
+	<link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="HandheldFriendly" content="True">
+	<meta name="MobileOptimized" content="720">
+	<meta name="viewport" content="width=device-width, target-densitydpi=300dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+	<meta name="format-detection" content="telephone=no" />
+	<title>Game Name</title>
+
+	<style>
+		html,body{
+			margin:0;
+		}
+		#canvas-container {
+			width: 100%;
+			text-align:center;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="canvas-container">
+		<canvas id="canvas" width="200" height="100" style="border:0px">
+		</canvas>
+	</div>
+
+	<script>
+//0,0 is top left in Canvas
+var mobileRatio = 9/16;
+var height = window.innerHeight;
+var width=height / (16/9);
+
+var player={};
+var gravity=.91/2;
+var keymovepower=0.55;
+var friction = 0.956;
+
+var block={};
+
+var blockwidth=width*0.2;
+var blockheight=width*0.4;
+var blockspeed=2.8123
+var circle = {centerX:width/2, centerY:height*0.4, radius:width/2, angle:0}
+
+var sprites=[];
+var framecounter=0;
+
+function init() {
+	canvas.width  = width
+	canvas.height = height;
+	canvas.imageSmoothingEnabled = true;
+
+	player.x=width/2; //Init player
+	player.y=80;
+	player.xspeed=0;
+	player.yspeed=0;
+	player.dead=false;
+	player.angle=90;
+	player.radius=width*0.05;
+	player.spritsize=width*0.2;
+
+	block.x=width;
+	block.y=width*0.2;
+	block.angle=180;
+
+	//IMAGES
+	for (var i = 1; i <= 4; i++) {
+		var drawing = new Image();
+		drawing.src = 'img/' + i + ".png"	;
+		sprites.push(drawing);
+	}
+	
+
+	
+
+}
+
+function drawGame(){
+	var ctx = canvas.getContext("2d");
+	//draw Ball
+	ctx.fillStyle="black";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	//DRAW CIRCLE
+	ctx.beginPath();
+	ctx.fillStyle="white";
+	ctx.arc(circle.centerX,circle.centerY,width/2,0,2*Math.PI);
+	ctx.stroke();
+	ctx.fill();
+	//player
+	ctx.fillStyle="black";
+	ctx.beginPath();
+	// ctx.arc(player.x,player.y,player.radius,0,2*Math.PI);
+	// console.log(int(framecounter/20));
+	console.log("drawing  " + Math.ceil(framecounter/15));
+	var d = Math.ceil(framecounter/15);
+	if (d==0)
+		d=0;
+	ctx.drawImage(sprites[ Math.floor(framecounter/15)],player.x  ,player.y ,player.spritsize,player.spritsize);
+		// ctx.drawImage(sprites[currentSprite].image,player.x - (pipsize/2) ,player.y - pipsize/2,pipsize,pipsize);
+
+
+	ctx.stroke();
+	ctx.fill();
+	
+	//enemy
+	ctx.beginPath();
+	ctx.beginPath();
+	ctx.rotate(block.angle*Math.PI/180);
+	ctx.fillRect(block.x,block.y,blockwidth,blockheight);
+	// ctx.fillRect(block.x,block.y2,blockwidth,blockheight);
+	// ctx.arc(block.x,block.y,19 * mobileRatio,0,2*Math.PI);	
+	
+	ctx.fill();
+}
+
+function updateGame(){
+	//Gravity + movement
+	// player.yspeed+=gravity;
+	//Calculate key movement for old school keyboards.
+	// if (keys[37])	//Left arrow
+	// 	player.xspeed-=keymovepower;
+	// if (keys[39])	//Right arrow
+	// 	player.xspeed+=keymovepower;
+	player.angle+=0.01;
+	block.angle-=0.01;
+
+	player.x = circle.centerX + Math.cos(player.angle) * circle.radius;
+	player.y = circle.centerY + Math.sin(player.angle) * circle.radius;
+
+	block.x = circle.centerX + Math.cos(block.angle) * circle.radius;
+	block.y = circle.centerY + Math.sin(block.angle) * circle.radius;
+
+	framecounter++;
+	if (framecounter>=60)
+		framecounter=1;
+
+	// console.log(player);
+
+	//Calculate gyro into player pos
+	// player.xspeed*=friction;
+
+	//floor
+	// if (player.y>=height - 150){
+	// 	player.dead=true;
+	// }
+
+	// if (keys[65]){	//keys
+	// 	player.yspeed = -10;
+	// 	console.log("a hit");
+	// }
+
+	// //Move the blocks
+	// block.x-=blockspeed;
+	// //Move them back when off screen
+	// if (block.x<0-width*0.2)
+	// 	block.x=width * 1.1;
+
+	//Update player pos
+	// player.x+=player.xspeed;
+	// player.y+=player.yspeed;
+
+	//Hit detection
+	xdif=player.x-block.x;
+	ydif=player.y-block.y;
+	ydif2=player.y-block.y2;
+	if(xdif>=0 && xdif<=blockwidth){
+		if(ydif>=0 && ydif<=blockheight){
+			player.dead=true;
+		}
+		if(ydif2>=0 && ydif2<=blockheight){
+			player.dead=true;
+		}
+	}
+
+	if (player.x<0)
+		player.x=width;
+	if (player.x>width)
+		player.x=0;
+	
+	if (player.dead){
+		// init();
+	}
+		
+}
+
+init();
+
+canvas.addEventListener("click", function(){
+	player.angle-=0.25;
+});
+ 
+var keys = [];
+window.onkeyup = function(e) {keys[e.keyCode]=false;}
+window.onkeydown = function(e) {keys[e.keyCode]=true;}
+
+//Game Loop
+var ONE_FRAME_TIME = 1000 / 60 ;
+var mainloop = function() {
+	updateGame();
+	drawGame();
+};
+setInterval( mainloop, ONE_FRAME_TIME );
+
+</script>
+</body>
+</html>
